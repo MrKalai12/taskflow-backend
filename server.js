@@ -1,6 +1,4 @@
 require('dotenv').config();
-console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
-console.log('NODE_ENV:', process.env.NODE_ENV);
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -12,21 +10,21 @@ const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
-// const requiredVars = [
-//   'JWT_SECRET',
-//   'JWT_EXPIRES_IN',
-//   'MONGO_URI',
-//   'REFRESH_TOKEN_SECRET',
-//   'REFRESH_TOKEN_EXPIRES_IN',
-//   'CLIENT_URL'
-// ];
+const requiredVars = [
+  'JWT_SECRET',
+  'JWT_EXPIRES_IN',
+  'MONGO_URI',
+  'REFRESH_TOKEN_SECRET',
+  'REFRESH_TOKEN_EXPIRES_IN',
+  'CLIENT_URL'
+];
 
-// requiredVars.forEach((key) => {
-//   if (!process.env[key]) {
-//     console.error(`Error: Missing required environment variable ${key}`);
-//     process.exit(1);
-//   }
-// });
+requiredVars.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`Error: Missing required environment variable ${key}`);
+    process.exit(1);
+  }
+});
 
 const app = express();
 
