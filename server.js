@@ -22,7 +22,7 @@ const requiredVars = [
   'CLIENT_URL'
 ];
 
-requiredvars.forEach((key) => {
+requiredVars.forEach((key) => {
   if (!process.env[key]) {
     console.error(`Error: Missing required environment variable ${key}`);
     process.exit(1);
