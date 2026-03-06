@@ -11,8 +11,11 @@ const teamRoutes = require('./routes/teamRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
 const requiredvars = [
-  'PORT', 'JWT_SECRET', 'JWT_EXPIRES_IN',
-  'MONGO_URI', 'REFRESH_TOKEN_SECRET', 'CLIENT_URL'
+  'JWT_SECRET',
+  'JWT_EXPIRES_IN',
+  'MONGO_URI',
+  'REFRESH_TOKEN_SECRET',
+  'CLIENT_URL'
 ];
 
 requiredvars.forEach((key) => {
