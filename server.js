@@ -1,4 +1,7 @@
-require('dotenv').config();
+//require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -10,11 +13,12 @@ const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
-const requiredvars = [
+const requiredVars = [
   'JWT_SECRET',
   'JWT_EXPIRES_IN',
   'MONGO_URI',
   'REFRESH_TOKEN_SECRET',
+  'REFRESH_TOKEN_EXPIRES_IN',
   'CLIENT_URL'
 ];
 
