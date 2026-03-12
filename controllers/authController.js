@@ -5,7 +5,6 @@ const RefreshToken = require("../models/RefreshToken");
 const {
   signupSchema,
   loginSchema,
-  refreshSchema,
 } = require("../validators/authValidator");
 
 const signup = async (req, res) => {
@@ -52,7 +51,6 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-
     const result = loginSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({
@@ -62,7 +60,7 @@ const login = async (req, res) => {
 
     // Use validated clean data
     const { email, password } = result.data;
-    
+
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials!" });
@@ -94,10 +92,15 @@ const login = async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // JS cannot read this
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      sameSite: "strict", // CSRF protection
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
     return res.status(200).json({
       message: "Login sucessfull",
       accessToken,
-      refreshToken,
       user: {
         id: user._id,
         userName: user.userName,
@@ -113,20 +116,20 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-
-    const result = refreshSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({
-        message: result.error.errors[0].message,
-      });
+    const refreshToken = req.cookies.refreshToken;
+    
+    if (refreshToken) {
+      await RefreshToken.deleteOne({ token: refreshToken });
     }
 
-    // Use validated clean data
-    const { refreshToken } = result.data;
-    await RefreshToken.deleteOne({ token: refreshToken });
-    return res.status(200).json({
-      message: "Logout Successfull",
+    // Clear the cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
+
+    return res.status(200).json({ message: "Logout Successful" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server Error" });
@@ -135,16 +138,11 @@ const logout = async (req, res) => {
 
 const refresh = async (req, res) => {
   try {
-    const result = refreshSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({
-        message: result.error.errors[0].message,
-      });
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token" });
     }
-
-    // Use validated clean data
-    const { refreshToken } = result.data;
-   const tokenDoc = await RefreshToken.findOne({ token: refreshToken });
+    const tokenDoc = await RefreshToken.findOne({ token: refreshToken });
     if (!tokenDoc) {
       return res.status(401).json({
         message: "Invalid refresh token",
@@ -192,10 +190,16 @@ const refresh = async (req, res) => {
       expiresIn: "15m",
     });
 
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return res.status(200).json({
       message: "Refresh Token created",
       accessToken,
-      refreshToken: newRefreshToken,
     });
   } catch (error) {
     console.log(error);
