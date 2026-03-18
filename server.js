@@ -29,13 +29,20 @@ requiredVars.forEach((key) => {
 const cookieParser = require('cookie-parser')
 
 const app = express();
-app.use(cookieParser());
-// Security
-app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL,
+
+
+app.use(cors({ 
+  origin: process.env.CLIENT_URL,
   credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
  }));
 
+// Security
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+app.use(cookieParser());
 // Logging — before everything so all requests are logged
 const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
 app.use(morgan(morganFormat));
