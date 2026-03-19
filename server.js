@@ -53,12 +53,13 @@ app.use(express.json());
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 7,
+  max: 20,
   message: { message: "Too many attempts. Please try again after 15 minutes." }
 });
 
 // Routes
-app.use('/api/auth', authLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/signup', authLimiter);
 app.use('/api/auth', authRoutes);
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 app.use('/api', teamRoutes);
