@@ -2,10 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const RefreshToken = require("../models/RefreshToken");
-const {
-  signupSchema,
-  loginSchema,
-} = require("../validators/authValidator");
+const { signupSchema, loginSchema } = require("../validators/authValidator");
 
 const signup = async (req, res) => {
   try {
@@ -92,12 +89,15 @@ const login = async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // JS cannot read this
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "strict", // CSRF protection
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-    });
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+
+    // Then use it:
+    res.cookie("refreshToken", refreshToken, cookieOptions);
     return res.status(200).json({
       message: "Login sucessfull",
       accessToken,
@@ -117,16 +117,16 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    
+
     if (refreshToken) {
       await RefreshToken.deleteOne({ token: refreshToken });
     }
 
     // Clear the cookie
-    res.clearCookie('refreshToken', {
+    res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.status(200).json({ message: "Logout Successful" });
@@ -193,7 +193,7 @@ const refresh = async (req, res) => {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -211,9 +211,9 @@ const refresh = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user.userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return res.status(404).json({ message: "User not found" });
     }
 
     return res.status(200).json({
@@ -222,12 +222,11 @@ const getMe = async (req, res) => {
         userName: user.userName,
         email: user.email,
         role: user.role,
-      }
-    })
+      },
+    });
   } catch (error) {
-    return res.status(500).json({ message: 'Server Error' })
+    return res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
-module.exports = { signup, login, logout, refresh, getMe }
-
+module.exports = { signup, login, logout, refresh, getMe };
