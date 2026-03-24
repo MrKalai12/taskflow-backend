@@ -90,11 +90,11 @@ const login = async (req, res) => {
     });
 
     const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    };
+  httpOnly: true,
+  secure: true,        // ✅ ALWAYS TRUE (Railway = HTTPS)
+  sameSite: "none",    // ✅ ALWAYS NONE (cross-origin)
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
     // Then use it:
     res.cookie("refreshToken", refreshToken, cookieOptions);
@@ -124,10 +124,10 @@ const logout = async (req, res) => {
 
     // Clear the cookie
     res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+});
 
     return res.status(200).json({ message: "Logout Successful" });
   } catch (error) {
@@ -192,8 +192,8 @@ const refresh = async (req, res) => {
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: true,        
+      sameSite: "none",    
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
